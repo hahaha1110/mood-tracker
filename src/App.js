@@ -1,11 +1,66 @@
-import { Link, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 import "./App.css";
 import Home from "./pages/Home";
 import New from "./pages/New";
 import Diary from "./pages/Diary";
 import Edit from "./pages/Edit";
+import { useReducer, useRef } from "react";
+
+const reducer = (state, action) => {
+  return state;
+};
 
 function App() {
+  const reducer = (state, action) => {
+    switch (action.type) {
+      case "CREATE":
+        return [action.data, ...state];
+      case "UPDATE": {
+        return state.map((it) =>
+          String(it.id) === String(action.data.id) ? { ...action.data } : it
+        );
+      }
+      case "DELETE":
+        return state.filter((it) => String(it.id) !== String(action.targetId));
+      default:
+        return state;
+    }
+  };
+  const [data, dispatch] = useReducer(reducer, []);
+  const idRef = useRef(0);
+
+  const onCreate = (date, content, emotionId) => {
+    dispatch({
+      type: "CREATE",
+      data: {
+        id: idRef.current,
+        date: new Date(date).getTime(),
+        content,
+        emotionId,
+      },
+    });
+    idRef.current += 1;
+  };
+
+  const onUpdate = (targetId, date, content, emotionId) => {
+    dispatch({
+      type: "UPDATE",
+      data: {
+        id: targetId,
+        date: new Date(date).getTime(),
+        content,
+        emotionId,
+      },
+    });
+  };
+
+  const onDelete = (targetId) => {
+    dispatch({
+      type: "DELETE",
+      targetId,
+    });
+  };
+
   return (
     <div className="App">
       <Routes>
@@ -14,12 +69,6 @@ function App() {
         <Route path="/diary/:id" element={<Diary />} />
         <Route path="/edit" element={<Edit />} />
       </Routes>
-      <div>
-        <Link to={"/"}>Home</Link>
-        <Link to={"/new"}>New</Link>
-        <Link to={"/diary"}>Diary</Link>
-        <Link to={"/edit"}>Edit</Link>
-      </div>
     </div>
   );
 }
